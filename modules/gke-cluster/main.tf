@@ -104,11 +104,6 @@ resource "google_container_cluster" "cluster" {
     enabled = var.enable_vertical_pod_autoscaling
   }
 
-  master_auth {
-    username = var.basic_auth_username
-    password = var.basic_auth_password
-  }
-
   dynamic "master_authorized_networks_config" {
     for_each = var.master_authorized_networks_config
     content {

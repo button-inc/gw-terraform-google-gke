@@ -10,12 +10,6 @@ terraform {
   required_version = ">= 1.4.6"
 }
 
-locals {
-  workload_identity_config = !var.enable_workload_identity ? [] : var.identity_namespace == null ? [{
-    identity_namespace = "${var.project}.svc.id.goog" }] : [{ identity_namespace = var.identity_namespace
-  }]
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Create the GKE Cluster
 # We want to make a cluster with no node pools, and manage them all with the fine-grained google_container_node_pool resource
@@ -151,14 +145,6 @@ resource "google_container_cluster" "cluster" {
     content {
       state    = "ENCRYPTED"
       key_name = database_encryption.value
-    }
-  }
-
-  dynamic "workload_identity_config" {
-    for_each = local.workload_identity_config
-
-    content {
-      identity_namespace = workload_identity_config.value.identity_namespace
     }
   }
 

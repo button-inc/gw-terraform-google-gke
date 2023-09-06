@@ -7,13 +7,19 @@ terraform {
   # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
   # forwards compatible with 1.0.x code.
-  required_version = ">= 0.12.26"
-}
+  required_version = ">= 1.4.6"
 
-locals {
-  workload_identity_config = !var.enable_workload_identity ? [] : var.identity_namespace == null ? [{
-    identity_namespace = "${var.project}.svc.id.goog" }] : [{ identity_namespace = var.identity_namespace
-  }]
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.73.1"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 4.73.1"
+    }
+  }
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -104,11 +110,6 @@ resource "google_container_cluster" "cluster" {
     enabled = var.enable_vertical_pod_autoscaling
   }
 
-  master_auth {
-    username = var.basic_auth_username
-    password = var.basic_auth_password
-  }
-
   dynamic "master_authorized_networks_config" {
     for_each = var.master_authorized_networks_config
     content {
@@ -156,14 +157,6 @@ resource "google_container_cluster" "cluster" {
     content {
       state    = "ENCRYPTED"
       key_name = database_encryption.value
-    }
-  }
-
-  dynamic "workload_identity_config" {
-    for_each = local.workload_identity_config
-
-    content {
-      identity_namespace = workload_identity_config.value.identity_namespace
     }
   }
 
